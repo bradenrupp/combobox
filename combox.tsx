@@ -54,8 +54,9 @@ export function ComboBox({ id, options }) {
                 style={{
                     display: 'flex',
                     alignItems: 'center',
-                    borderBottom: '1px solid #757575',
-                    padding: '8px 0',
+                    border: '1px solid #757575',
+                    borderRadius: 4,
+                    padding: '4px 8px',
                 }}
             >
                 <input
