@@ -4,12 +4,36 @@ import { useCombobox } from 'downshift'
 export function ComboBox({ id, options }) {
     const [items, setItems] = React.useState(options)
 
+    // Filter options based on the input text
     function getOptionsFilter(inputValue) {
         const lowerCasedInputValue = inputValue.toLowerCase()
         return (option) =>
             !inputValue ||
             option.label.toLowerCase().includes(lowerCasedInputValue) ||
             option.value.toLowerCase().includes(lowerCasedInputValue)
+    }
+
+    // State reducer to enforce only valid values persist on blur.
+    // When the input loses focus, if the input doesn't exactly match an option's label,
+    // it will revert to the last valid selection (if one exists) or clear the input.
+    const stateReducer = (state, actionAndChanges) => {
+        const { type, changes } = actionAndChanges
+        switch (type) {
+            case useCombobox.stateChangeTypes.InputBlur: {
+                const newInputValue = changes.inputValue || ''
+                // Look for an option that exactly matches the new input (case-insensitive)
+                const validItem = options.find(
+                    (option) => option.label.toLowerCase() === newInputValue.toLowerCase()
+                )
+                if (validItem) {
+                    return { ...changes, inputValue: validItem.label, selectedItem: validItem }
+                }
+                // If no valid item, then revert to the previously selected item (if any) or clear the input
+                return { ...changes, inputValue: state.selectedItem ? state.selectedItem.label : '' }
+            }
+            default:
+                return changes
+        }
     }
 
     const {
@@ -27,6 +51,7 @@ export function ComboBox({ id, options }) {
         },
         items,
         itemToString: (item) => (item ? item.label : ''),
+        stateReducer,
     })
 
     return (
